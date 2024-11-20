@@ -3,14 +3,14 @@ import Link from 'next/link';
 export default function Page() {
   return (
     <div className="flex h-screen bg-black">
-      <div className="w-screen h-screen flex flex-col justify-center items-center">
+      <div className="flex h-screen w-screen flex-col items-center justify-center">
         <svg
           width="283"
           height="64"
           viewBox="0 0 283 64"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-36 h-36"
+          className="h-36 w-36"
           aria-label="Vercel logo"
         >
           <path
@@ -18,17 +18,17 @@ export default function Page() {
             fill="white"
           />
         </svg>
-        <div className="text-center max-w-screen-sm mb-10">
-          <h1 className="text-stone-200 font-bold text-2xl">
+        <div className="mb-10 max-w-screen-sm text-center">
+          <h1 className="text-2xl font-bold text-stone-200">
             Next.js + Postgres Auth Starter
           </h1>
-          <p className="text-stone-400 mt-5">
+          <p className="mt-5 text-stone-400">
             This is a{' '}
             <a
               href="https://nextjs.org/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stone-400 underline hover:text-stone-200 transition-all"
+              className="text-stone-400 underline transition-all hover:text-stone-200"
             >
               Next.js
             </a>{' '}
@@ -37,7 +37,7 @@ export default function Page() {
               href="https://next-auth.js.org/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stone-400 underline hover:text-stone-200 transition-all"
+              className="text-stone-400 underline transition-all hover:text-stone-200"
             >
               NextAuth.js
             </a>{' '}
@@ -46,7 +46,7 @@ export default function Page() {
               href="https://vercel.com/postgres"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stone-400 underline hover:text-stone-200 transition-all"
+              className="text-stone-400 underline transition-all hover:text-stone-200"
             >
               Postgres
             </a>{' '}
@@ -56,7 +56,7 @@ export default function Page() {
         <div className="flex space-x-3">
           <Link
             href="/protected"
-            className="text-stone-400 underline hover:text-stone-200 transition-all"
+            className="text-stone-400 underline transition-all hover:text-stone-200"
           >
             Protected Page
           </Link>
@@ -65,7 +65,7 @@ export default function Page() {
             href="https://vercel.com/templates/next.js/prisma-postgres-auth-starter"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-stone-400 underline hover:text-stone-200 transition-all"
+            className="text-stone-400 underline transition-all hover:text-stone-200"
           >
             Deploy to Vercel
           </a>

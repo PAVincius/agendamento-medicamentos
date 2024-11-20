@@ -13,7 +13,7 @@ export function Form({
       <div>
         <label
           htmlFor="email"
-          className="block text-xs text-gray-600 uppercase"
+          className="block text-xs uppercase text-gray-600"
         >
           Email Address
         </label>
@@ -30,7 +30,7 @@ export function Form({
       <div>
         <label
           htmlFor="password"
-          className="block text-xs text-gray-600 uppercase"
+          className="block text-xs uppercase text-gray-600"
         >
           Password
         </label>
