@@ -14,8 +14,8 @@ export default function Login() {
     if (user.length > 0) {
       return 'User already exists'; // TODO: Handle errors with useFormStatus
     }
-      await createUser(email, password);
-      redirect('/login');
+    await createUser(email, password);
+    redirect('/login');
   }
 
   return (
