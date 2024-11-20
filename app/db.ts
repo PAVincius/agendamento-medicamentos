@@ -7,8 +7,8 @@ import { genSaltSync, hashSync } from 'bcrypt-ts';
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
-let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
-let db = drizzle(client);
+const client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
+const db = drizzle(client);
 
 export async function getUser(email: string) {
   const users = await ensureTableExists();
@@ -17,8 +17,8 @@ export async function getUser(email: string) {
 
 export async function createUser(email: string, password: string) {
   const users = await ensureTableExists();
-  let salt = genSaltSync(10);
-  let hash = hashSync(password, salt);
+  const salt = genSaltSync(10);
+  const hash = hashSync(password, salt);
 
   return await db.insert(users).values({ email, password: hash });
 }

@@ -7,16 +7,15 @@ import { SubmitButton } from 'app/submit-button';
 export default function Login() {
   async function register(formData: FormData) {
     'use server';
-    let email = formData.get('email') as string;
-    let password = formData.get('password') as string;
-    let user = await getUser(email);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const user = await getUser(email);
 
     if (user.length > 0) {
       return 'User already exists'; // TODO: Handle errors with useFormStatus
-    } else {
+    }
       await createUser(email, password);
       redirect('/login');
-    }
   }
 
   return (

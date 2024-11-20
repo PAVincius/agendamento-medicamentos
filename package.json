@@ -24,7 +24,8 @@
     "next-auth": "5.0.0-beta.4",
     "postgres": "^3.4.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "3.2.2",
