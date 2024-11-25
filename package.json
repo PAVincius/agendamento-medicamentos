@@ -17,15 +17,20 @@
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "bcrypt-ts": "^5.0.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "drizzle-orm": "^0.29.2",
     "geist": "^1.2.0",
     "lint-staged": "^15.2.10",
+    "lucide-react": "^0.460.0",
     "next": "^14.0.4",
     "next-auth": "5.0.0-beta.4",
     "postgres": "^3.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sharp": "0.33.1"
+    "sharp": "0.33.1",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "3.2.2",
