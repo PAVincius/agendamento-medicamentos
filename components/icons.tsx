@@ -1,9 +1,9 @@
-type IconProps = React.HTMLAttributes<SVGElement>
+type IconProps = React.HTMLAttributes<SVGElement>;
 
 export const Icons = {
   logo: (props: IconProps) => (
     // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" {...props}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" {...props}>
       <rect width="256" height="256" fill="none" />
       <line
         x1="208"
@@ -11,7 +11,8 @@ export const Icons = {
         x2="128"
         y2="208"
         fill="none"
-        stroke="currentColor"z
+        stroke="currentColor"
+        z
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="32"
@@ -147,8 +148,18 @@ export const Icons = {
     </svg>
   ),
   logo: (props: IconProps) => (
-    <svg width="50" height="38" viewBox="0 0 50 38" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path d="M23.0246 1.45608L0.655336 32.7994C-0.761847 34.7851 0.65766 37.5421 3.09723 37.5421H8.52655C9.17554 37.5421 9.78418 37.2272 10.1591 36.6975L24.6381 16.2385L38.9538 36.689C39.3281 37.2237 39.9396 37.5421 40.5923 37.5421H46.6097C49.0608 37.5421 50.4775 34.7619 49.0367 32.7788L26.2706 1.44238C25.4678 0.337346 23.818 0.344312 23.0246 1.45608Z" fill="#F3B930"/>
+    <svg
+      width="50"
+      height="38"
+      viewBox="0 0 50 38"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M23.0246 1.45608L0.655336 32.7994C-0.761847 34.7851 0.65766 37.5421 3.09723 37.5421H8.52655C9.17554 37.5421 9.78418 37.2272 10.1591 36.6975L24.6381 16.2385L38.9538 36.689C39.3281 37.2237 39.9396 37.5421 40.5923 37.5421H46.6097C49.0608 37.5421 50.4775 34.7619 49.0367 32.7788L26.2706 1.44238C25.4678 0.337346 23.818 0.344312 23.0246 1.45608Z"
+        fill="#F3B930"
+      />
     </svg>
   ),
-}
+};
