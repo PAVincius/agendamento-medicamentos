@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 export default function Login() {
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-background">
+    <div className="flex items-center justify-center w-screen h-screen bg-background">
       <Image
         alt="bg"
         // Importing an image will
@@ -18,9 +18,10 @@ export default function Login() {
         fill
         quality={100}
       />
-      <div className="z-10 w-full max-w-md items-center overflow-hidden rounded-2xl border border-gray-100 shadow-xl">
-        <div className="ml-9 w-full items-center justify-center align-middle">
-          <svg
+      <div className="z-10 items-center w-full max-w-md overflow-hidden border border-gray-100 shadow-xl rounded-2xl">
+        <div className="items-center justify-center w-full align-middle ml-9">
+          {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
+<svg
             width="365"
             height="87"
             viewBox="0 0 365 87"
@@ -37,7 +38,7 @@ export default function Login() {
             />
           </svg>
         </div>
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
+        <div className="flex flex-col items-center justify-center px-4 py-6 pt-8 space-y-3 text-center bg-white border-b border-gray-200 sm:px-16">
           <h3 className="text-xl font-semibold">Sign In</h3>
           <p className="text-sm text-gray-500">
             Use your email and password to sign in
@@ -54,7 +55,7 @@ export default function Login() {
           }}
         >
           <SubmitButton>Sign in</SubmitButton>
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-sm text-center text-gray-600">
             {"Don't have an account? "}
             <Link href="/register" className="font-semibold text-gray-800">
               Sign up 2

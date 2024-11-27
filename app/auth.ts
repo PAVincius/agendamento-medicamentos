@@ -13,6 +13,7 @@ export const {
   ...authConfig,
   providers: [
     Credentials({
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       async authorize({ email, password }: any) {
         let user = await getUser(email);
         if (user.length === 0) return null;
