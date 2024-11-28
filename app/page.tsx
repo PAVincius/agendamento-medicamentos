@@ -50,4 +50,4 @@ function Page() {
     </SidebarProvider>
   );
 }
-export default Page
+export default Page;
