@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -11,69 +11,69 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command"
+} from '@/components/ui/command';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Check, ChevronsUpDown } from 'lucide-react'
-import { cn } from "@/lib/utils"
-import type { Usuario, Alergia } from "@/types/interfaces"
-import { Sexo, UFs, type UF } from "@/types/enums"
+} from '@/components/ui/popover';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { Usuario, Alergia } from '@/types/interfaces';
+import { Sexo, UFs, type UF } from '@/types/enums';
 
 const formSchema = z.object({
-  nome: z.string().min(1, "Nome é obrigatório"),
+  nome: z.string().min(1, 'Nome é obrigatório'),
   sexo: z.nativeEnum(Sexo),
   uf: z.enum(UFs),
   alergias: z.array(z.string()),
-})
+});
 
 interface UsuarioFormProps {
-  initialData?: Usuario
-  onSave: (data: Usuario) => void
+  initialData?: Usuario;
+  onSave: (data: Usuario) => void;
 }
 
 // Mock data for demonstration
 const mockAlergias: Alergia[] = [
-  { id: "1", nome: "Penicilina", descricao: "Alergia à penicilina" },
-  { id: "2", nome: "Látex", descricao: "Alergia ao látex" },
-  { id: "3", nome: "Dipirona", descricao: "Alergia à dipirona" },
-]
+  { id: '1', nome: 'Penicilina', descricao: 'Alergia à penicilina' },
+  { id: '2', nome: 'Látex', descricao: 'Alergia ao látex' },
+  { id: '3', nome: 'Dipirona', descricao: 'Alergia à dipirona' },
+];
 
 export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
-      nome: "",
+      nome: '',
       sexo: Sexo.MASCULINO,
       uf: UFs[0],
       alergias: [],
     },
-  })
+  });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     onSave({
       id: initialData?.id || '',
       ...data,
-    })
-  }
+    });
+  };
 
   return (
     <Form {...form}>
@@ -108,17 +108,13 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
                     <FormControl>
                       <RadioGroupItem value={Sexo.MASCULINO} />
                     </FormControl>
-                    <FormLabel className="font-normal">
-                      Masculino
-                    </FormLabel>
+                    <FormLabel className="font-normal">Masculino</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-2">
                     <FormControl>
                       <RadioGroupItem value={Sexo.FEMININO} />
                     </FormControl>
-                    <FormLabel className="font-normal">
-                      Feminino
-                    </FormLabel>
+                    <FormLabel className="font-normal">Feminino</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>
@@ -165,13 +161,13 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
                       variant="outline"
                       role="combobox"
                       className={cn(
-                        "w-full justify-between",
-                        !field.value?.length && "text-muted-foreground"
+                        'w-full justify-between',
+                        !field.value?.length && 'text-muted-foreground',
                       )}
                     >
                       {field.value?.length
                         ? `${field.value.length} alergia(s) selecionada(s)`
-                        : "Selecione as alergias"}
+                        : 'Selecione as alergias'}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
@@ -186,21 +182,21 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
                           key={alergia.id}
                           value={alergia.nome}
                           onSelect={() => {
-                            const currentValue = new Set(field.value)
+                            const currentValue = new Set(field.value);
                             if (currentValue.has(alergia.id)) {
-                              currentValue.delete(alergia.id)
+                              currentValue.delete(alergia.id);
                             } else {
-                              currentValue.add(alergia.id)
+                              currentValue.add(alergia.id);
                             }
-                            field.onChange(Array.from(currentValue))
+                            field.onChange(Array.from(currentValue));
                           }}
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4",
+                              'mr-2 h-4 w-4',
                               field.value?.includes(alergia.id)
-                                ? "opacity-100"
-                                : "opacity-0"
+                                ? 'opacity-100'
+                                : 'opacity-0',
                             )}
                           />
                           {alergia.nome}
@@ -220,6 +216,5 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
-

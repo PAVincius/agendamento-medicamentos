@@ -14,7 +14,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 
-export function Page() {
+function Page() {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -50,3 +50,4 @@ export function Page() {
     </SidebarProvider>
   );
 }
+export default Page

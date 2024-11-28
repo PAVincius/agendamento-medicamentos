@@ -1,4 +1,3 @@
-
 ## Getting Started
 
 First, change the .env.local file to .env with the provided environment variables

@@ -1,7 +1,13 @@
 'use client';
 
 import type * as React from 'react';
-import { Frame, GalleryVerticalEnd, Map, PieChart, SquareTerminal } from 'lucide-react';
+import {
+  Frame,
+  GalleryVerticalEnd,
+  Map,
+  PieChart,
+  SquareTerminal,
+} from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -29,7 +35,7 @@ const data = {
       name: 'Acme Inc',
       logo: GalleryVerticalEnd,
       plan: 'Enterprise',
-    }
+    },
   ],
   navMain: [
     {
@@ -87,4 +93,3 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   );
 }
-

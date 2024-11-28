@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -11,27 +11,27 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import type { Vacina } from "@/types/interfaces"
-import { Periodicidade} from "@/types/enums"
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import type { Vacina } from '@/types/interfaces';
+import { Periodicidade } from '@/types/enums';
 
 const formSchema = z.object({
-  doses: z.number().min(1, "Número de doses é obrigatório"),
+  doses: z.number().min(1, 'Número de doses é obrigatório'),
   periodicidade: z.nativeEnum(Periodicidade),
-  intervalo: z.number().min(0, "Intervalo deve ser maior ou igual a zero"),
-})
+  intervalo: z.number().min(0, 'Intervalo deve ser maior ou igual a zero'),
+});
 
 interface VacinaFormProps {
-  initialData?: Vacina
-  onSave: (data: Vacina) => void
+  initialData?: Vacina;
+  onSave: (data: Vacina) => void;
 }
 
 export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
@@ -42,14 +42,14 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
       periodicidade: Periodicidade.DIAS,
       intervalo: 0,
     },
-  })
+  });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     onSave({
       id: initialData?.id || '',
       ...data,
-    })
-  }
+    });
+  };
 
   return (
     <Form {...form}>
@@ -61,10 +61,10 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
             <FormItem>
               <FormLabel>Doses</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={e => field.onChange(parseInt(e.target.value))}
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -78,8 +78,8 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Periodicidade</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
+              <Select
+                onValueChange={field.onChange}
                 defaultValue={field.value}
                 disabled={form.watch('doses') <= 1}
               >
@@ -108,10 +108,10 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
             <FormItem>
               <FormLabel>Intervalo</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={e => field.onChange(parseInt(e.target.value))}
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                   disabled={form.watch('doses') <= 1}
                 />
               </FormControl>
@@ -125,6 +125,5 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
-

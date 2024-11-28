@@ -1,5 +1,5 @@
-import { Vacinas } from "./vacinas"
+import { Vacinas } from './vacinas';
 
 export default function VacinasPage() {
-  return <Vacinas />
+  return <Vacinas />;
 }

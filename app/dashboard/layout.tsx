@@ -30,9 +30,7 @@ export default function DashboardLayout({
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/dashboard">
-                    Dashboard
-                  </BreadcrumbLink>
+                  <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
@@ -42,11 +40,8 @@ export default function DashboardLayout({
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {children}
-        </div>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
 }
-

@@ -6,6 +6,5 @@ export default function DashboardPage() {
         Selecione uma opção no menu lateral para começar.
       </p>
     </div>
-  )
+  );
 }
-

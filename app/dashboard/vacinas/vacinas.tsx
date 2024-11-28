@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useState } from "react"
-import { Plus } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -17,30 +17,30 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import type { Vacina } from "@/types/interfaces"
-import { VacinaForm } from "./vacinas-form"
+} from '@/components/ui/table';
+import type { Vacina } from '@/types/interfaces';
+import { VacinaForm } from './vacinas-form';
 
 export function Vacinas() {
-  const [vacinas, setVacinas] = useState<Vacina[]>([])
-  const [editingVacina, setEditingVacina] = useState<Vacina | null>(null)
+  const [vacinas, setVacinas] = useState<Vacina[]>([]);
+  const [editingVacina, setEditingVacina] = useState<Vacina | null>(null);
 
   const handleSave = (vacina: Vacina) => {
     if (editingVacina) {
-      setVacinas(vacinas.map(v => v.id === vacina.id ? vacina : v))
+      setVacinas(vacinas.map((v) => (v.id === vacina.id ? vacina : v)));
     } else {
-      setVacinas([...vacinas, { ...vacina, id: Math.random().toString() }])
+      setVacinas([...vacinas, { ...vacina, id: Math.random().toString() }]);
     }
-    setEditingVacina(null)
-  }
+    setEditingVacina(null);
+  };
 
   const handleDelete = (id: string) => {
-    setVacinas(vacinas.filter(v => v.id !== id))
-  }
+    setVacinas(vacinas.filter((v) => v.id !== id));
+  };
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Vacinas</h1>
         <Dialog>
           <DialogTrigger asChild>
@@ -87,8 +87,8 @@ export function Vacinas() {
                     <VacinaForm onSave={handleSave} initialData={vacina} />
                   </DialogContent>
                 </Dialog>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => handleDelete(vacina.id)}
                 >
@@ -100,6 +100,5 @@ export function Vacinas() {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
-

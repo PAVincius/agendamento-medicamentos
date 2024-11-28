@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useState } from "react"
-import { Plus } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -17,30 +17,30 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { type Usuario } from "@/types/interfaces"
-import { UsuarioForm } from "./usuario-form"
+} from '@/components/ui/table';
+import { type Usuario } from '@/types/interfaces';
+import { UsuarioForm } from './usuario-form';
 
 export function Usuarios() {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([])
-  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null)
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
 
   const handleSave = (usuario: Usuario) => {
     if (editingUsuario) {
-      setUsuarios(usuarios.map(u => u.id === usuario.id ? usuario : u))
+      setUsuarios(usuarios.map((u) => (u.id === usuario.id ? usuario : u)));
     } else {
-      setUsuarios([...usuarios, { ...usuario, id: Math.random().toString() }])
+      setUsuarios([...usuarios, { ...usuario, id: Math.random().toString() }]);
     }
-    setEditingUsuario(null)
-  }
+    setEditingUsuario(null);
+  };
 
   const handleDelete = (id: string) => {
-    setUsuarios(usuarios.filter(u => u.id !== id))
-  }
+    setUsuarios(usuarios.filter((u) => u.id !== id));
+  };
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Usuários</h1>
         <Dialog>
           <DialogTrigger asChild>
@@ -89,8 +89,8 @@ export function Usuarios() {
                     <UsuarioForm onSave={handleSave} initialData={usuario} />
                   </DialogContent>
                 </Dialog>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => handleDelete(usuario.id)}
                 >
@@ -102,6 +102,5 @@ export function Usuarios() {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
-

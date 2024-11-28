@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { addYears, addMonths, addWeeks, addDays } from "date-fns"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { addYears, addMonths, addWeeks, addDays } from 'date-fns';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -12,26 +12,26 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
+} from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { cn } from "@/lib/utils"
-import { CalendarIcon } from 'lucide-react'
-import type { Agenda, Vacina } from "@/types/interfaces"
-import {  SituacaoAgenda,  Periodicidade } from "@/types/enums"
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { CalendarIcon } from 'lucide-react';
+import type { Agenda, Vacina } from '@/types/interfaces';
+import { SituacaoAgenda, Periodicidade } from '@/types/enums';
 
 const formSchema = z.object({
   data: z.date(),
@@ -39,29 +39,29 @@ const formSchema = z.object({
   dataSituacao: z.date().nullable(),
   vacinaId: z.string(),
   usuarioId: z.string(),
-})
+});
 
 interface AgendaFormProps {
-  initialData?: Agenda
-  onSave: (data: Agenda) => void
+  initialData?: Agenda;
+  onSave: (data: Agenda) => void;
 }
 
 // Mock data for demonstration
 const mockVacinas: Vacina[] = [
   {
-    id: "1",
+    id: '1',
     doses: 3,
     periodicidade: Periodicidade.MESES,
     intervalo: 2,
   },
   {
-    id: "2",
+    id: '2',
     doses: 4,
     periodicidade: Periodicidade.ANOS,
     intervalo: 1,
   },
   // Add more mock vacinas as needed
-]
+];
 
 export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -70,45 +70,45 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
       data: new Date(),
       situacao: SituacaoAgenda.AGENDADO,
       dataSituacao: null,
-      vacinaId: "",
-      usuarioId: "",
+      vacinaId: '',
+      usuarioId: '',
     },
-  })
+  });
 
   const calculateFutureDates = (baseDate: Date, vacina: Vacina) => {
-    const dates: Date[] = [baseDate]
-    
-    if (vacina.doses <= 1) return dates
+    const dates: Date[] = [baseDate];
+
+    if (vacina.doses <= 1) return dates;
 
     for (let i = 1; i < vacina.doses; i++) {
-      let nextDate = baseDate
-      const interval = vacina.intervalo * i
+      let nextDate = baseDate;
+      const interval = vacina.intervalo * i;
 
       switch (vacina.periodicidade) {
         case Periodicidade.ANOS:
-          nextDate = addYears(baseDate, interval)
-          break
+          nextDate = addYears(baseDate, interval);
+          break;
         case Periodicidade.MESES:
-          nextDate = addMonths(baseDate, interval)
-          break
+          nextDate = addMonths(baseDate, interval);
+          break;
         case Periodicidade.SEMANAS:
-          nextDate = addWeeks(baseDate, interval)
-          break
+          nextDate = addWeeks(baseDate, interval);
+          break;
         case Periodicidade.DIAS:
-          nextDate = addDays(baseDate, interval)
-          break
+          nextDate = addDays(baseDate, interval);
+          break;
       }
-      dates.push(nextDate)
+      dates.push(nextDate);
     }
 
-    return dates
-  }
+    return dates;
+  };
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    const selectedVacina = mockVacinas.find(v => v.id === data.vacinaId)
-    if (!selectedVacina) return
+    const selectedVacina = mockVacinas.find((v) => v.id === data.vacinaId);
+    if (!selectedVacina) return;
 
-    const dates = calculateFutureDates(data.data, selectedVacina)
+    const dates = calculateFutureDates(data.data, selectedVacina);
     const agendas = dates.map((date, index) => ({
       id: initialData?.id || Math.random().toString() + index,
       data: date,
@@ -116,12 +116,12 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
       dataSituacao: null,
       vacinaId: data.vacinaId,
       usuarioId: data.usuarioId,
-    }))
+    }));
 
     // Save all generated agendas
     // biome-ignore lint/complexity/noForEach: <explanation>
-        agendas.forEach(agenda => onSave(agenda))
-  }
+    agendas.forEach((agenda) => onSave(agenda));
+  };
 
   return (
     <Form {...form}>
@@ -161,14 +161,14 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
-                      variant={"outline"}
+                      variant={'outline'}
                       className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        'w-[240px] pl-3 text-left font-normal',
+                        !field.value && 'text-muted-foreground',
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP", { locale: ptBR })
+                        format(field.value, 'PPP', { locale: ptBR })
                       ) : (
                         <span>Escolha uma data</span>
                       )}
@@ -226,14 +226,14 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant={'outline'}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          'w-[240px] pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground',
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP", { locale: ptBR })
+                          format(field.value, 'PPP', { locale: ptBR })
                         ) : (
                           <span>Escolha uma data</span>
                         )}
@@ -261,6 +261,5 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
-
