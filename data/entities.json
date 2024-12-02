@@ -1,0 +1,93 @@
+{
+  "usuarios": [
+    {
+      "id": "1",
+      "nome": "João Silva",
+      "sexo": "MASCULINO",
+      "uf": "SP",
+      "alergias": ["1", "3"]
+    },
+    {
+      "id": "2",
+      "nome": "Maria Santos",
+      "sexo": "FEMININO",
+      "uf": "RJ",
+      "alergias": ["2"]
+    }
+  ],
+  "vacinas": [
+    {
+      "id": "1",
+      "nome": "Vacina COVID-19",
+      "doses": 2,
+      "periodicidade": "MESES",
+      "intervalo": 3,
+      "componentes": ["1", "2", "3"]
+    },
+    {
+      "id": "2",
+      "nome": "Vacina Gripe",
+      "doses": 1,
+      "periodicidade": "ANOS",
+      "intervalo": 1,
+      "componentes": ["2", "4"]
+    }
+  ],
+  "agendamentos": [
+    {
+      "id": "1",
+      "usuarioId": "1",
+      "vacinaId": "1",
+      "data": "2023-06-15T10:00:00Z",
+      "situacao": "AGENDADO",
+      "dataSituacao": null
+    },
+    {
+      "id": "2",
+      "usuarioId": "2",
+      "vacinaId": "2",
+      "data": "2023-07-01T14:30:00Z",
+      "situacao": "REALIZADO",
+      "dataSituacao": "2023-07-01T14:45:00Z"
+    }
+  ],
+  "componentes": [
+    {
+      "id": "1",
+      "nome": "mRNA",
+      "descricao": "RNA mensageiro"
+    },
+    {
+      "id": "2",
+      "nome": "Lipídios",
+      "descricao": "Nanopartículas lipídicas"
+    },
+    {
+      "id": "3",
+      "nome": "Sais",
+      "descricao": "Sais para estabilização"
+    },
+    {
+      "id": "4",
+      "nome": "Vírus inativado",
+      "descricao": "Vírus da gripe inativado"
+    }
+  ],
+  "alergias": [
+    {
+      "id": "1",
+      "nome": "Penicilina",
+      "descricao": "Alergia à penicilina e derivados"
+    },
+    {
+      "id": "2",
+      "nome": "Ovo",
+      "descricao": "Alergia a ovos e derivados"
+    },
+    {
+      "id": "3",
+      "nome": "Látex",
+      "descricao": "Alergia ao látex"
+    }
+  ]
+}

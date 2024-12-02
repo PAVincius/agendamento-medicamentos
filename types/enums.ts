@@ -1,22 +1,14 @@
-export enum Sexo {
-  MASCULINO = 'MASCULINO',
-  FEMININO = 'FEMININO',
-}
-
-export enum Periodicidade {
-  DIAS = 'DIAS',
-  SEMANAS = 'SEMANAS',
-  MESES = 'MESES',
-  ANOS = 'ANOS',
-}
-
-export enum SituacaoAgenda {
+export enum Situacao {
   AGENDADO = 'AGENDADO',
-  CANCELADO = 'CANCELADO',
   REALIZADO = 'REALIZADO',
+  CANCELADO = 'CANCELADO',
 }
 
-// Define UFs as a regular array for easier iteration
+export enum Sexo {
+  M = 'M',
+  F = 'F',
+}
+
 export const UFs = [
   'AC',
   'AL',
@@ -48,3 +40,10 @@ export const UFs = [
 ] as const;
 
 export type UF = (typeof UFs)[number];
+
+export enum Periodicidade {
+  DIAS = 0,
+  SEMANAS = 1,
+  MESES = 2,
+  ANOS = 3,
+}

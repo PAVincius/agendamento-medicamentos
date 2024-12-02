@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -36,13 +37,31 @@ import {
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Usuario, Alergia } from '@/types/interfaces';
-import { Sexo, UFs, type UF } from '@/types/enums';
+import { Sexo, UFs } from '@/types/enums';
+import { alergiaService } from '@/services/alergiaService';
+import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
-  nome: z.string().min(1, 'Nome é obrigatório'),
+  nome: z
+    .string()
+    .min(1, 'Nome é obrigatório')
+    .max(60, 'Nome deve ter no máximo 60 caracteres'),
+  dataNascimento: z.date(),
   sexo: z.nativeEnum(Sexo),
+  logradouro: z
+    .string()
+    .min(1, 'Logradouro é obrigatório')
+    .max(60, 'Logradouro deve ter no máximo 60 caracteres'),
+  setor: z
+    .string()
+    .min(1, 'Setor é obrigatório')
+    .max(40, 'Setor deve ter no máximo 40 caracteres'),
+  cidade: z
+    .string()
+    .min(1, 'Cidade é obrigatória')
+    .max(40, 'Cidade deve ter no máximo 40 caracteres'),
   uf: z.enum(UFs),
-  alergias: z.array(z.string()),
+  alergias: z.array(z.number()),
 });
 
 interface UsuarioFormProps {
@@ -50,19 +69,38 @@ interface UsuarioFormProps {
   onSave: (data: Usuario) => void;
 }
 
-// Mock data for demonstration
-const mockAlergias: Alergia[] = [
-  { id: '1', nome: 'Penicilina', descricao: 'Alergia à penicilina' },
-  { id: '2', nome: 'Látex', descricao: 'Alergia ao látex' },
-  { id: '3', nome: 'Dipirona', descricao: 'Alergia à dipirona' },
-];
-
 export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
+  const [alergias, setAlergias] = useState<Alergia[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchAlergias = async () => {
+      try {
+        const response = await alergiaService.listarTodas();
+        setAlergias(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        console.error('Erro ao buscar alergias:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar as alergias.',
+          variant: 'destructive',
+        });
+        setAlergias([]); // Ensure alergias is always an array
+      }
+    };
+
+    fetchAlergias();
+  }, [toast]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       nome: '',
-      sexo: Sexo.MASCULINO,
+      dataNascimento: new Date(),
+      sexo: Sexo.M,
+      logradouro: '',
+      setor: '',
+      cidade: '',
       uf: UFs[0],
       alergias: [],
     },
@@ -70,8 +108,9 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     onSave({
-      id: initialData?.id || '',
+      id: initialData?.id || 0,
       ...data,
+      alergias: alergias.filter((a) => (data.alergias || []).includes(a.id)),
     });
   };
 
@@ -85,7 +124,30 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
             <FormItem>
               <FormLabel>Nome</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} maxLength={60} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="dataNascimento"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Data de Nascimento</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  {...field}
+                  value={
+                    field.value instanceof Date
+                      ? field.value.toISOString().split('T')[0]
+                      : ''
+                  }
+                  onChange={(e) => field.onChange(new Date(e.target.value))}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -106,17 +168,59 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
                 >
                   <FormItem className="flex items-center space-x-2">
                     <FormControl>
-                      <RadioGroupItem value={Sexo.MASCULINO} />
+                      <RadioGroupItem value={Sexo.M} />
                     </FormControl>
                     <FormLabel className="font-normal">Masculino</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-2">
                     <FormControl>
-                      <RadioGroupItem value={Sexo.FEMININO} />
+                      <RadioGroupItem value={Sexo.F} />
                     </FormControl>
                     <FormLabel className="font-normal">Feminino</FormLabel>
                   </FormItem>
                 </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="logradouro"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Logradouro</FormLabel>
+              <FormControl>
+                <Input {...field} maxLength={60} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="setor"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Setor</FormLabel>
+              <FormControl>
+                <Input {...field} maxLength={40} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cidade"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cidade</FormLabel>
+              <FormControl>
+                <Input {...field} maxLength={40} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -136,7 +240,7 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Array.from(UFs).map((uf) => (
+                  {UFs.map((uf) => (
                     <SelectItem key={uf} value={uf}>
                       {uf}
                     </SelectItem>
@@ -154,58 +258,61 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Alergias</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        'w-full justify-between',
-                        !field.value?.length && 'text-muted-foreground',
-                      )}
-                    >
-                      {field.value?.length
-                        ? `${field.value.length} alergia(s) selecionada(s)`
-                        : 'Selecione as alergias'}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Procurar alergia..." />
-                    <CommandEmpty>Nenhuma alergia encontrada.</CommandEmpty>
-                    <CommandGroup>
-                      {mockAlergias.map((alergia) => (
-                        <CommandItem
-                          key={alergia.id}
-                          value={alergia.nome}
-                          onSelect={() => {
-                            const currentValue = new Set(field.value);
-                            if (currentValue.has(alergia.id)) {
-                              currentValue.delete(alergia.id);
-                            } else {
-                              currentValue.add(alergia.id);
-                            }
-                            field.onChange(Array.from(currentValue));
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              field.value?.includes(alergia.id)
-                                ? 'opacity-100'
-                                : 'opacity-0',
-                            )}
-                          />
-                          {alergia.nome}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              {alergias.length > 0 && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        // biome-ignore lint/a11y/useSemanticElements: <explanation>
+                        role="combobox"
+                        className={cn(
+                          'w-full justify-between',
+                          !field.value?.length && 'text-muted-foreground',
+                        )}
+                      >
+                        {field.value?.length
+                          ? `${field.value.length} alergia(s) selecionada(s)`
+                          : 'Selecione as alergias'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Procurar alergia..." />
+                      <CommandEmpty>Nenhuma alergia encontrada.</CommandEmpty>
+                      <CommandGroup>
+                        {alergias.map((alergia) => (
+                          <CommandItem
+                            key={alergia.id}
+                            value={alergia.nome}
+                            onSelect={() => {
+                              const currentValue = new Set(field.value || []);
+                              if (currentValue.has(alergia.id)) {
+                                currentValue.delete(alergia.id);
+                              } else {
+                                currentValue.add(alergia.id);
+                              }
+                              field.onChange(Array.from(currentValue));
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                field.value?.includes(alergia.id)
+                                  ? 'opacity-100'
+                                  : 'opacity-0',
+                              )}
+                            />
+                            {alergia.nome}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
               <FormMessage />
             </FormItem>
           )}

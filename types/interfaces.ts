@@ -1,31 +1,63 @@
-import type { Periodicidade, SituacaoAgenda, Sexo, UF } from './enums';
+import type { Sexo, UF, Periodicidade } from './enums';
 
-export interface Vacina {
-  id: string;
-  doses: number;
-  periodicidade: Periodicidade;
-  intervalo: number;
+export enum Situacao {
+  AGENDADO = 'AGENDADO',
+  REALIZADO = 'REALIZADO',
+  CANCELADO = 'CANCELADO',
 }
 
 export interface Agenda {
-  id: string;
-  vacinaId: string;
-  usuarioId: string;
+  id: number;
   data: Date;
-  situacao: SituacaoAgenda;
-  dataSituacao: Date | null;
-}
-
-export interface Usuario {
-  id: string;
-  nome: string;
-  sexo: Sexo;
-  uf: UF;
-  alergias: string[];
+  hora: string;
+  situacao: Situacao;
+  dataSituacao?: Date;
+  observacoes?: string;
+  usuario: Usuario;
+  vacina: Vacina;
 }
 
 export interface Alergia {
-  id: string;
+  id: number;
   nome: string;
+}
+
+export interface Componente {
+  id: number;
+  nome: string;
+}
+
+export interface Reacao {
+  id: number;
   descricao: string;
+  dataReacao: Date;
+  agenda: Agenda;
+}
+
+export interface Usuario {
+  id: number;
+  nome: string;
+  dataNascimento: Date;
+  sexo: Sexo;
+  logradouro: string;
+  setor: string;
+  cidade: string;
+  uf: UF;
+  alergias: Alergia[];
+}
+
+export interface UsuarioAlergia {
+  id: number;
+  usuario: Usuario;
+  alergia: Alergia;
+}
+
+export interface Vacina {
+  id: number;
+  titulo: string;
+  descricao: string;
+  doses: number;
+  periodicidade?: Periodicidade;
+  intervalo?: number;
+  componentes: Componente[];
 }

@@ -1,8 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { addYears, addMonths, addWeeks, addDays } from 'date-fns';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,15 +30,31 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { CalendarIcon } from 'lucide-react';
-import type { Agenda, Vacina } from '@/types/interfaces';
-import { SituacaoAgenda, Periodicidade } from '@/types/enums';
+import {
+  Situacao,
+  type Agenda,
+  type Vacina,
+  type Usuario,
+} from '@/types/interfaces';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { vacinaService } from '@/services/vacinaService';
+import { usuarioService } from '@/services/usuarioService';
+import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
   data: z.date(),
-  situacao: z.nativeEnum(SituacaoAgenda),
-  dataSituacao: z.date().nullable(),
-  vacinaId: z.string(),
-  usuarioId: z.string(),
+  hora: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido'),
+  situacao: z.nativeEnum(Situacao),
+  dataSituacao: z.date().optional(),
+  observacoes: z
+    .string()
+    .max(200, 'Observações devem ter no máximo 200 caracteres')
+    .optional(),
+  usuarioId: z.number(),
+  vacinaId: z.number(),
 });
 
 interface AgendaFormProps {
@@ -46,102 +62,128 @@ interface AgendaFormProps {
   onSave: (data: Agenda) => void;
 }
 
-// Mock data for demonstration
-const mockVacinas: Vacina[] = [
-  {
-    id: '1',
-    doses: 3,
-    periodicidade: Periodicidade.MESES,
-    intervalo: 2,
-  },
-  {
-    id: '2',
-    doses: 4,
-    periodicidade: Periodicidade.ANOS,
-    intervalo: 1,
-  },
-  // Add more mock vacinas as needed
-];
-
 export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
+  const [vacinas, setVacinas] = useState<Vacina[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [vacinasResponse, usuariosResponse] = await Promise.all([
+          vacinaService.listarTodas(),
+          usuarioService.listarTodos(),
+        ]);
+        setVacinas(
+          Array.isArray(vacinasResponse.data) ? vacinasResponse.data : [],
+        );
+        setUsuarios(
+          Array.isArray(usuariosResponse.data) ? usuariosResponse.data : [],
+        );
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os dados necessários.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       data: new Date(),
-      situacao: SituacaoAgenda.AGENDADO,
-      dataSituacao: null,
-      vacinaId: '',
-      usuarioId: '',
+      hora: '09:00',
+      situacao: Situacao.AGENDADO,
+      dataSituacao: undefined,
+      observacoes: '',
+      usuarioId: 0,
+      vacinaId: 0,
     },
   });
 
-  const calculateFutureDates = (baseDate: Date, vacina: Vacina) => {
-    const dates: Date[] = [baseDate];
-
-    if (vacina.doses <= 1) return dates;
-
-    for (let i = 1; i < vacina.doses; i++) {
-      let nextDate = baseDate;
-      const interval = vacina.intervalo * i;
-
-      switch (vacina.periodicidade) {
-        case Periodicidade.ANOS:
-          nextDate = addYears(baseDate, interval);
-          break;
-        case Periodicidade.MESES:
-          nextDate = addMonths(baseDate, interval);
-          break;
-        case Periodicidade.SEMANAS:
-          nextDate = addWeeks(baseDate, interval);
-          break;
-        case Periodicidade.DIAS:
-          nextDate = addDays(baseDate, interval);
-          break;
-      }
-      dates.push(nextDate);
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    const usuario = usuarios.find((u) => u.id === data.usuarioId);
+    const vacina = vacinas.find((v) => v.id === data.vacinaId);
+    if (!usuario || !vacina) {
+      toast({
+        title: 'Erro',
+        description: 'Usuário ou vacina não encontrados.',
+        variant: 'destructive',
+      });
+      return;
     }
 
-    return dates;
+    onSave({
+      id: initialData?.id || 0,
+      ...data,
+      usuario,
+      vacina,
+    });
   };
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    const selectedVacina = mockVacinas.find((v) => v.id === data.vacinaId);
-    if (!selectedVacina) return;
-
-    const dates = calculateFutureDates(data.data, selectedVacina);
-    const agendas = dates.map((date, index) => ({
-      id: initialData?.id || Math.random().toString() + index,
-      data: date,
-      situacao: SituacaoAgenda.AGENDADO,
-      dataSituacao: null,
-      vacinaId: data.vacinaId,
-      usuarioId: data.usuarioId,
-    }));
-
-    // Save all generated agendas
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    agendas.forEach((agenda) => onSave(agenda));
-  };
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
+          name="usuarioId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Usuário</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(Number(value))}
+                value={field.value.toString()}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o usuário" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {usuarios.map((usuario) => (
+                    <SelectItem key={usuario.id} value={usuario.id.toString()}>
+                      {usuario.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="vacinaId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Vacina</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={(value) => field.onChange(Number(value))}
+                value={field.value.toString()}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a vacina" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {mockVacinas.map((vacina) => (
-                    <SelectItem key={vacina.id} value={vacina.id}>
-                      {`${vacina.doses} doses - Intervalo ${vacina.intervalo} ${vacina.periodicidade}`}
+                  {vacinas.map((vacina) => (
+                    <SelectItem key={vacina.id} value={vacina.id.toString()}>
+                      {vacina.titulo}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -192,18 +234,32 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
 
         <FormField
           control={form.control}
+          name="hora"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hora</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="situacao"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Situação</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a situação" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Object.values(SituacaoAgenda).map((situacao) => (
+                  {Object.values(Situacao).map((situacao) => (
                     <SelectItem key={situacao} value={situacao}>
                       {situacao}
                     </SelectItem>
@@ -215,7 +271,7 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
           )}
         />
 
-        {form.watch('situacao') !== SituacaoAgenda.AGENDADO && (
+        {form.watch('situacao') !== Situacao.AGENDADO && (
           <FormField
             control={form.control}
             name="dataSituacao"
@@ -244,7 +300,7 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value || undefined}
+                      selected={field.value}
                       onSelect={field.onChange}
                       locale={ptBR}
                     />
@@ -255,6 +311,20 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
             )}
           />
         )}
+
+        <FormField
+          control={form.control}
+          name="observacoes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Observações</FormLabel>
+              <FormControl>
+                <Textarea {...field} maxLength={200} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button type="submit" className="w-full">
           Salvar

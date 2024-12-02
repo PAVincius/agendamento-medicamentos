@@ -56,6 +56,14 @@ const data = {
           title: 'Vacinas',
           url: '/dashboard/vacinas',
         },
+        {
+          title: 'Alergias',
+          url: '/dashboard/alergias',
+        },
+        {
+          title: 'Componentes',
+          url: '/dashboard/componentes',
+        },
       ],
     },
   ],
