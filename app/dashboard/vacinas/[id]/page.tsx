@@ -1,45 +1,43 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Beaker, Syringe } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { Vacina } from '@/types/interfaces';
-import { vacinaService } from '@/services/vacinaService';
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Beaker, Syringe } from 'lucide-react'
+import { Skeleton } from "@/components/ui/skeleton"
+import type { Vacina } from "@/types/interfaces"
+import { vacinaService } from "@/services/vacinaService"
 
 export default function VacinaDetailsPage() {
-  const params = useParams();
-  const [vacina, setVacina] = useState<Vacina | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const params = useParams()
+  const [vacina, setVacina] = useState<Vacina | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchVacina = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const response = await vacinaService.buscarPorId(Number(params.id));
-        setVacina(response.data);
+        const response = await vacinaService.buscarPorId(Number(params.id))
+        setVacina(response.data)
       } catch (error) {
-        console.error('Erro ao buscar detalhes da vacina:', error);
+        console.error("Erro ao buscar detalhes da vacina:", error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchVacina();
-  }, [params.id]);
+    fetchVacina()
+  }, [params.id])
 
   if (isLoading) {
     return (
-      <div className="container mx-auto space-y-8 py-10">
+      <div className="container mx-auto py-10 space-y-8">
         <Skeleton className="h-8 w-[300px]" />
         <div className="grid gap-4 md:grid-cols-2">
           {[1, 2].map((i) => (
             <Card key={i}>
               <CardHeader>
-                <CardTitle>
-                  <Skeleton className="h-4 w-[200px]" />
-                </CardTitle>
+                <CardTitle><Skeleton className="h-4 w-[200px]" /></CardTitle>
               </CardHeader>
               <CardContent>
                 <Skeleton className="h-8 w-[100px]" />
@@ -48,17 +46,17 @@ export default function VacinaDetailsPage() {
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   if (!vacina) {
-    return <div>Vacina não encontrada</div>;
+    return <div>Vacina não encontrada</div>
   }
 
   return (
-    <div className="container mx-auto space-y-8 py-10">
+    <div className="container mx-auto py-10 space-y-8">
       <h1 className="text-3xl font-bold">{vacina.titulo}</h1>
-
+      
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -81,9 +79,7 @@ export default function VacinaDetailsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {vacina.periodicidade
-                ? `${vacina.intervalo} ${vacina.periodicidade}`
-                : 'Não aplicável'}
+              {vacina.periodicidade ? `${vacina.intervalo} ${vacina.periodicidade}` : 'Não aplicável'}
             </p>
           </CardContent>
         </Card>
@@ -103,7 +99,7 @@ export default function VacinaDetailsPage() {
           <CardTitle>Componentes</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="list-disc space-y-2 pl-6">
+          <ul className="list-disc pl-6 space-y-2">
             {vacina.componentes.map((componente) => (
               <li key={componente.id}>{componente.nome}</li>
             ))}
@@ -111,5 +107,6 @@ export default function VacinaDetailsPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
+

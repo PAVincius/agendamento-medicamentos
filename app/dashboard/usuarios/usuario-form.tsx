@@ -102,7 +102,7 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
       setor: '',
       cidade: '',
       uf: UFs[0],
-      alergias: [],
+      alergias: alergias,
     },
   });
 

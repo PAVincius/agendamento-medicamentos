@@ -128,7 +128,6 @@ export function Componentes() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Descrição</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -140,13 +139,6 @@ export function Componentes() {
                       <Skeleton className="h-4 w-[200px]" />
                     ) : (
                       componente.nome
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {loadingId === componente.id ? (
-                      <Skeleton className="h-4 w-[300px]" />
-                    ) : (
-                      componente.descricao
                     )}
                   </TableCell>
                   <TableCell className="text-right">

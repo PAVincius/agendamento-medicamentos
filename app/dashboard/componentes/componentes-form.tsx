@@ -20,11 +20,7 @@ const formSchema = z.object({
   nome: z
     .string()
     .min(1, 'Nome é obrigatório')
-    .max(60, 'Nome deve ter no máximo 60 caracteres'),
-  descricao: z
-    .string()
-    .min(1, 'Descrição é obrigatória')
-    .max(200, 'Descrição deve ter no máximo 200 caracteres'),
+    .max(60, 'Nome deve ter no máximo 60 caracteres')
 });
 
 interface ComponenteFormProps {
@@ -64,21 +60,6 @@ export function ComponenteForm({ initialData, onSave }: ComponenteFormProps) {
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="descricao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea {...field} maxLength={200} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <Button type="submit" className="w-full">
           Salvar
         </Button>

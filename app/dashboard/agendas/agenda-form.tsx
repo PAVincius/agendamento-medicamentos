@@ -1,10 +1,10 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -12,114 +12,100 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
+} from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
-import {
-  Situacao,
-  type Agenda,
-  type Vacina,
-  type Usuario,
-} from '@/types/interfaces';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { vacinaService } from '@/services/vacinaService';
-import { usuarioService } from '@/services/usuarioService';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/popover"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { cn } from "@/lib/utils"
+import { CalendarIcon } from 'lucide-react'
+import { Situacao, type Agenda, type Vacina, type Usuario } from "@/types/interfaces"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { vacinaService } from "@/services/vacinaService"
+import { usuarioService } from "@/services/usuarioService"
+import { useToast } from "@/components/ui/use-toast"
 
 const formSchema = z.object({
   data: z.date(),
-  hora: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido'),
+  hora: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato de hora inválido"),
   situacao: z.nativeEnum(Situacao),
   dataSituacao: z.date().optional(),
-  observacoes: z
-    .string()
-    .max(200, 'Observações devem ter no máximo 200 caracteres')
-    .optional(),
+  observacoes: z.string().max(200, "Observações devem ter no máximo 200 caracteres").optional(),
   usuarioId: z.number(),
   vacinaId: z.number(),
-});
+})
 
 interface AgendaFormProps {
-  initialData?: Agenda;
-  onSave: (data: Agenda) => void;
+  initialData?: Agenda
+  onSave: (data: Agenda) => void
 }
 
 export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
-  const [vacinas, setVacinas] = useState<Vacina[]>([]);
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const [vacinas, setVacinas] = useState<Vacina[]>([])
+  const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
         const [vacinasResponse, usuariosResponse] = await Promise.all([
           vacinaService.listarTodas(),
-          usuarioService.listarTodos(),
-        ]);
-        setVacinas(
-          Array.isArray(vacinasResponse.data) ? vacinasResponse.data : [],
-        );
-        setUsuarios(
-          Array.isArray(usuariosResponse.data) ? usuariosResponse.data : [],
-        );
+          usuarioService.listarTodos()
+        ])
+        setVacinas(Array.isArray(vacinasResponse.data) ? vacinasResponse.data : [])
+        setUsuarios(Array.isArray(usuariosResponse.data) ? usuariosResponse.data : [])
       } catch (error) {
-        console.error('Erro ao buscar dados:', error);
+        console.error("Erro ao buscar dados:", error)
         toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar os dados necessários.',
-          variant: 'destructive',
-        });
+          title: "Erro",
+          description: "Não foi possível carregar os dados necessários.",
+          variant: "destructive",
+        })
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, [toast]);
+    fetchData()
+  }, [toast])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       data: new Date(),
-      hora: '09:00',
+      hora: "09:00",
       situacao: Situacao.AGENDADO,
       dataSituacao: undefined,
-      observacoes: '',
+      observacoes: "",
       usuarioId: 0,
       vacinaId: 0,
     },
-  });
+  })
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    const usuario = usuarios.find((u) => u.id === data.usuarioId);
-    const vacina = vacinas.find((v) => v.id === data.vacinaId);
+    const usuario = usuarios.find(u => u.id === data.usuarioId)
+    const vacina = vacinas.find(v => v.id === data.vacinaId)
     if (!usuario || !vacina) {
       toast({
-        title: 'Erro',
-        description: 'Usuário ou vacina não encontrados.',
-        variant: 'destructive',
-      });
-      return;
+        title: "Erro",
+        description: "Usuário ou vacina não encontrados.",
+        variant: "destructive",
+      })
+      return
     }
 
     onSave({
@@ -127,11 +113,11 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
       ...data,
       usuario,
       vacina,
-    });
-  };
+    })
+  }
 
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return <div>Carregando...</div>
   }
 
   return (
@@ -143,10 +129,7 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Usuário</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value.toString()}
-              >
+              <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value.toString()}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o usuário" />
@@ -171,10 +154,7 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Vacina</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value.toString()}
-              >
+              <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value.toString()}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a vacina" />
@@ -203,14 +183,14 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
-                      variant={'outline'}
+                      variant={"outline"}
                       className={cn(
-                        'w-[240px] pl-3 text-left font-normal',
-                        !field.value && 'text-muted-foreground',
+                        "w-[240px] pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
                       )}
                     >
                       {field.value ? (
-                        format(field.value, 'PPP', { locale: ptBR })
+                        format(field.value, "PPP", { locale: ptBR })
                       ) : (
                         <span>Escolha uma data</span>
                       )}
@@ -282,14 +262,14 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={'outline'}
+                        variant={"outline"}
                         className={cn(
-                          'w-[240px] pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground',
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
                         )}
                       >
                         {field.value ? (
-                          format(field.value, 'PPP', { locale: ptBR })
+                          format(field.value, "PPP", { locale: ptBR })
                         ) : (
                           <span>Escolha uma data</span>
                         )}
@@ -331,5 +311,6 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
         </Button>
       </form>
     </Form>
-  );
+  )
 }
+

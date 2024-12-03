@@ -128,7 +128,6 @@ export function Alergias() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Descrição</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -140,13 +139,6 @@ export function Alergias() {
                       <Skeleton className="h-4 w-[200px]" />
                     ) : (
                       alergia.nome
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {loadingId === alergia.id ? (
-                      <Skeleton className="h-4 w-[300px]" />
-                    ) : (
-                      alergia.descricao
                     )}
                   </TableCell>
                   <TableCell className="text-right">
