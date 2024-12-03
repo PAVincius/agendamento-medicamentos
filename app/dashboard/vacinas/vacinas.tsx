@@ -105,7 +105,7 @@ export function Vacinas() {
   }
 
   const handleRowClick = (id: number) => {
-    router.push(`/${id}/`)
+    router.push(`/dashboard/vacinas/${id}`)
   }
 
   const handleFilter = (column: keyof Vacina, value: string) => {

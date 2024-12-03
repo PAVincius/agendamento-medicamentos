@@ -64,7 +64,7 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
     const fetchComponentes = async () => {
       try {
         const response = await componenteService.listarTodos()
-        setComponentes(response.data)
+        setComponentes(Array.isArray(response.data) ? response.data : [])
       } catch (error) {
         console.error("Erro ao buscar componentes:", error)
         toast({
@@ -72,6 +72,7 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
           description: "Não foi possível carregar os componentes.",
           variant: "destructive",
         })
+        setComponentes([])
       }
     }
 
@@ -220,58 +221,24 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Componentes</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-full justify-between",
-                        !field.value.length && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value.length
-                        ? `${field.value.length} componente(s) selecionado(s)`
-                        : "Selecione os componentes"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Procurar componente..." />
-                    <CommandEmpty>Nenhum componente encontrado.</CommandEmpty>
-                    <CommandGroup>
-                      {componentes.map((componente) => (
-                        <CommandItem
-                          key={componente.id}
-                          value={componente.nome}
-                          onSelect={() => {
-                            const currentValue = new Set(field.value)
-                            if (currentValue.has(componente.id)) {
-                              currentValue.delete(componente.id)
-                            } else {
-                              currentValue.add(componente.id)
-                            }
-                            field.onChange(Array.from(currentValue))
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value.includes(componente.id)
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {componente.nome}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Select
+                onValueChange={(value) => field.onChange(value.split(',').map(Number))}
+                value={field.value?.join(',')}
+                multiple
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione os componentes" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {componentes.map((componente) => (
+                    <SelectItem key={componente.id} value={componente.id.toString()}>
+                      {componente.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

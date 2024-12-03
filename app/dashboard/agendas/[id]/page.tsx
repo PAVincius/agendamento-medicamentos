@@ -1,81 +1,102 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, User, Syringe } from 'lucide-react';
-import { format, isFuture } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { Agenda } from '@/types/interfaces';
-import { Situacao } from '@/types/enums';
-import { agendaService } from '@/services/agendaService';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Calendar, User, Syringe } from 'lucide-react'
+import { format, isFuture } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { Skeleton } from "@/components/ui/skeleton"
+import { type Agenda, Situacao } from "@/types/interfaces"
+import { agendaService } from "@/services/agendaService"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { toast } from '@/components/ui/use-toast';
+} from "@/components/ui/dropdown-menu"
+import { toast } from "@/components/ui/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { reacaoService } from "@/services/reacaoService"
 
 export default function AgendaDetailsPage() {
-  const params = useParams();
-  const [agenda, setAgenda] = useState<Agenda | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const params = useParams()
+  const [agenda, setAgenda] = useState<Agenda | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [reacao, setReacao] = useState("")
 
   useEffect(() => {
-    fetchAgenda();
-  }, [params.id]);
+    fetchAgenda()
+  }, [params.id])
 
   const fetchAgenda = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const response = await agendaService.buscarPorId(Number(params.id));
-      setAgenda(response.data);
+      const response = await agendaService.buscarPorId(Number(params.id))
+      setAgenda(response.data)
     } catch (error) {
-      console.error('Erro ao buscar detalhes da agenda:', error);
+      console.error("Erro ao buscar detalhes da agenda:", error)
       toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar os detalhes da agenda.',
-        variant: 'destructive',
-      });
+        title: "Erro",
+        description: "Não foi possível carregar os detalhes da agenda.",
+        variant: "destructive",
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleDarBaixa = async (situacao: Situacao) => {
-    if (!agenda) return;
+    if (!agenda) return
 
     try {
-      await agendaService.darBaixa(agenda.id, situacao);
-      await fetchAgenda();
+      await agendaService.darBaixa(agenda.id, situacao)
+      await fetchAgenda()
       toast({
-        title: 'Sucesso',
+        title: "Sucesso",
         description: `Agenda ${situacao.toLowerCase()} com sucesso.`,
-      });
+      })
     } catch (error) {
-      console.error('Erro ao dar baixa na agenda:', error);
+      console.error("Erro ao dar baixa na agenda:", error)
       toast({
-        title: 'Erro',
-        description: 'Não foi possível dar baixa na agenda.',
-        variant: 'destructive',
-      });
+        title: "Erro",
+        description: "Não foi possível dar baixa na agenda.",
+        variant: "destructive",
+      })
     }
-  };
+  }
+
+  const handleAddReacao = async () => {
+    if (!agenda) return
+
+    try {
+      await reacaoService.incluirReacao(agenda.id, reacao, new Date().toISOString())
+      toast({
+        title: "Sucesso",
+        description: "Reação adicionada com sucesso.",
+      })
+      setReacao("")
+    } catch (error) {
+      console.error("Erro ao adicionar reação:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar a reação.",
+        variant: "destructive",
+      })
+    }
+  }
 
   if (isLoading) {
     return (
-      <div className="container mx-auto space-y-8 py-10">
+      <div className="container mx-auto py-10 space-y-8">
         <Skeleton className="h-8 w-[300px]" />
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardHeader>
-                <CardTitle>
-                  <Skeleton className="h-4 w-[200px]" />
-                </CardTitle>
+                <CardTitle><Skeleton className="h-4 w-[200px]" /></CardTitle>
               </CardHeader>
               <CardContent>
                 <Skeleton className="h-8 w-[100px]" />
@@ -84,18 +105,18 @@ export default function AgendaDetailsPage() {
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   if (!agenda) {
-    return <div>Agenda não encontrada</div>;
+    return <div>Agenda não encontrada</div>
   }
 
-  const isAgendaFuture = isFuture(new Date(agenda.data));
+  const isAgendaFuture = isFuture(new Date(agenda.data))
 
   return (
-    <div className="container mx-auto space-y-8 py-10">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto py-10 space-y-8">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Detalhes do Agendamento</h1>
         {isAgendaFuture && agenda.situacao === Situacao.AGENDADO && (
           <DropdownMenu>
@@ -103,14 +124,10 @@ export default function AgendaDetailsPage() {
               <Button>Dar Baixa</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={() => handleDarBaixa(Situacao.REALIZADO)}
-              >
+              <DropdownMenuItem onClick={() => handleDarBaixa(Situacao.REALIZADO)}>
                 Realizado
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleDarBaixa(Situacao.CANCELADO)}
-              >
+              <DropdownMenuItem onClick={() => handleDarBaixa(Situacao.CANCELADO)}>
                 Cancelado
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -128,7 +145,7 @@ export default function AgendaDetailsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {format(new Date(agenda.data), 'PPP', { locale: ptBR })}
+              {format(new Date(agenda.data), "PPP", { locale: ptBR })}
             </p>
             <p className="text-lg">{agenda.hora}</p>
           </CardContent>
@@ -167,8 +184,7 @@ export default function AgendaDetailsPage() {
           <p className="text-2xl font-bold">{agenda.situacao}</p>
           {agenda.dataSituacao && (
             <p className="text-lg">
-              Data:{' '}
-              {format(new Date(agenda.dataSituacao), 'PPP', { locale: ptBR })}
+              Data: {format(new Date(agenda.dataSituacao), "PPP", { locale: ptBR })}
             </p>
           )}
         </CardContent>
@@ -184,6 +200,32 @@ export default function AgendaDetailsPage() {
           </CardContent>
         </Card>
       )}
+
+      {agenda.situacao === Situacao.REALIZADO && (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="mt-4">Adicionar Reação</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Adicionar Reação</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Input
+                  id="reacao"
+                  className="col-span-3"
+                  value={reacao}
+                  onChange={(e) => setReacao(e.target.value)}
+                  placeholder="Descreva a reação"
+                />
+                <Button onClick={handleAddReacao}>Adicionar</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
-  );
+  )
 }
+
