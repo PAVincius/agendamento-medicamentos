@@ -36,6 +36,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { vacinaService } from "@/services/vacinaService"
 import { usuarioService } from "@/services/usuarioService"
 import { useToast } from "@/components/ui/use-toast"
+import { agendaService } from "@/services/agendaService"; // Import agendaService
 
 const formSchema = z.object({
   data: z.date(),
@@ -48,11 +49,12 @@ const formSchema = z.object({
 })
 
 interface AgendaFormProps {
-  initialData?: Agenda
-  onSave: (data: Agenda) => void
+  initialData?: Agenda;
+  onSave: (data: Agenda) => void;
+  onCancel: () => void;
 }
 
-export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
+export function AgendaForm({ initialData, onSave, onCancel }: AgendaFormProps) {
   const [vacinas, setVacinas] = useState<Vacina[]>([])
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -85,7 +87,15 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
+    defaultValues: initialData ? {
+      data: new Date(initialData.data),
+      hora: initialData.hora,
+      situacao: initialData.situacao,
+      dataSituacao: initialData.dataSituacao ? new Date(initialData.dataSituacao) : undefined,
+      observacoes: initialData.observacoes || "",
+      usuarioId: initialData.usuario.id,
+      vacinaId: initialData.vacina.id,
+    } : {
       data: new Date(),
       hora: "09:00",
       situacao: Situacao.AGENDADO,
@@ -96,25 +106,45 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
     },
   })
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    const usuario = usuarios.find(u => u.id === data.usuarioId)
-    const vacina = vacinas.find(v => v.id === data.vacinaId)
-    if (!usuario || !vacina) {
+  const onSubmit = async (data: z.infer<typeof formSchema>, event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      // Formatar os dados para enviar para o backend
+      const formattedData = {
+        usuarioId:data.usuarioId,
+        vacinaId: data.vacinaId,
+        dataInicial: format(data.data, "yyyy-MM-dd"),
+        hora: data.hora,
+        observacoes: data.observacoes || "",
+        // Outros campos necessários para o backend
+      };
+      console.log(formattedData);
+      // Chamar o serviço para criar ou atualizar a agenda
+      if (initialData) {
+        const response = await agendaService.darBaixa(initialData.id, initialData.situacao);
+        savedAgenda = response.data;
+      } else {
+        const response = await agendaService.agendar(formattedData.usuarioId, formattedData.vacinaId, formattedData.dataInicial, formattedData.hora, formattedData.observacoes);
+        savedAgenda = response.data;
+      }
+      console.log(savedAgenda);
+      // Chamar a função onSave para atualizar o estado pai
+      onSave(savedAgenda);
+  
+      // Mostrar mensagem de sucesso
+      toast({
+        title: "Sucesso",
+        description: `Agenda ${initialData ? 'atualizada' : 'criada'} com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Erro ao salvar agenda:", error);
       toast({
         title: "Erro",
-        description: "Usuário ou vacina não encontrados.",
+        description: `Não foi possível ${initialData ? 'atualizar' : 'criar'} a agenda.`,
         variant: "destructive",
-      })
-      return
+      });
     }
-
-    onSave({
-      id: initialData?.id || 0,
-      ...data,
-      usuario,
-      vacina,
-    })
-  }
+  };
 
   if (isLoading) {
     return <div>Carregando...</div>
@@ -308,6 +338,9 @@ export function AgendaForm({ initialData, onSave }: AgendaFormProps) {
 
         <Button type="submit" className="w-full">
           Salvar
+        </Button>
+        <Button type="button" variant="outline" className="w-full mt-2" onClick={onCancel}>
+          Cancelar
         </Button>
       </form>
     </Form>

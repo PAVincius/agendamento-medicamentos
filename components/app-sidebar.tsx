@@ -64,6 +64,10 @@ const data = {
           title: 'Componentes',
           url: '/dashboard/componentes',
         },
+        {
+          title: 'Reações',
+          url: '/dashboard/reacoes',
+        },
       ],
     },
   ],

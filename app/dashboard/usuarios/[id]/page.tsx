@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, CheckCircle, Clock, User } from 'lucide-react'
+import { Calendar, CheckCircle, Clock, User, ChevronDown } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -15,10 +15,18 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import type { Usuario, Agenda } from "@/types/interfaces"
+import type { Usuario, Agenda, Situacao } from "@/types/interfaces"
 import { usuarioService } from "@/services/usuarioService"
 import { agendaService } from "@/services/agendaService"
 import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/use-toast"
 
 export default function UsuarioDetailsPage() {
   const params = useParams()
@@ -51,6 +59,24 @@ export default function UsuarioDetailsPage() {
   const agendamentosRealizados = agendas.filter(a => a.situacao === "REALIZADO").length
   const agendamentosCancelados = agendas.filter(a => a.situacao === "CANCELADO").length
   const agendamentosPendentes = agendas.filter(a => a.situacao === "AGENDADO").length
+
+  const handleDarBaixa = async (agendaId: number, situacao: string) => {
+    try {
+      await agendaService.darBaixa(agendaId, situacao as Situacao)
+      toast({
+        title: "Sucesso",
+        description: `Agenda atualizada para ${situacao} com sucesso.`,
+      })
+      fetchData() // Refresh the data
+    } catch (error) {
+      console.error("Erro ao dar baixa na agenda:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a agenda.",
+        variant: "destructive",
+      })
+    }
+  }
 
   if (isLoading) {
     return (
@@ -88,7 +114,7 @@ export default function UsuarioDetailsPage() {
           </p>
         </div>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -100,6 +126,24 @@ export default function UsuarioDetailsPage() {
               <>
                 <div className="text-2xl font-bold">{format(new Date(proximaVacina.data), "dd/MM/yyyy")}</div>
                 <p className="text-xs text-muted-foreground mt-1">{proximaVacina.vacina.titulo}</p>
+                {proximaVacina.situacao === "AGENDADO" && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full mt-2">
+                        Dar baixa
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onSelect={() => handleDarBaixa(proximaVacina.id, "REALIZADO")}>
+                        REALIZADO
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleDarBaixa(proximaVacina.id, "CANCELADO")}>
+                        CANCELADO
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </>
             ) : (
               <div className="text-2xl font-bold">Nenhuma</div>
@@ -165,7 +209,7 @@ export default function UsuarioDetailsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {agenda.dataSituacao && 
+                    {agenda.dataSituacao &&
                       format(new Date(agenda.dataSituacao), "PPP", { locale: ptBR })}
                   </TableCell>
                 </TableRow>

@@ -42,8 +42,8 @@ export const UFs = [
 export type UF = (typeof UFs)[number];
 
 export enum Periodicidade {
-  DIAS = 0,
-  SEMANAS = 1,
-  MESES = 2,
-  ANOS = 3,
+  DIAS = 1,
+  SEMANAS = 2,
+  MESES = 3,
+  ANOS = 4,
 }

@@ -24,23 +24,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import type { Vacina, Componente } from "@/types/interfaces"
 import { Periodicidade } from "@/types/enums"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Check, ChevronsUpDown } from 'lucide-react'
-import { cn } from "@/lib/utils"
 import { vacinaService } from "@/services/vacinaService"
 import { componenteService } from "@/services/componenteService"
 import { useToast } from "@/components/ui/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 
 const formSchema = z.object({
   titulo: z.string().min(1, "Título é obrigatório").max(60, "Título deve ter no máximo 60 caracteres"),
@@ -54,9 +41,10 @@ const formSchema = z.object({
 interface VacinaFormProps {
   initialData?: Vacina
   onSave: (data: Vacina) => void
+  onCancel: () => void
 }
 
-export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
+export function VacinaForm({ initialData, onSave, onCancel }: VacinaFormProps) {
   const [componentes, setComponentes] = useState<Componente[]>([])
   const { toast } = useToast()
 
@@ -91,34 +79,46 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
     },
   })
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>, event: React.FormEvent) => {
+    event.preventDefault();
     try {
-      let savedVacina: Vacina
+      const formattedData = {
+        id: initialData?.id || 0,
+        ...data,
+        periodicidade: Number(data.periodicidade),
+        componentes: data.componentes.map(id => ({
+          id,
+          nome: componentes.find(c => c.id === id)?.nome || ''
+        }))
+      };
+
+      let savedVacina: Vacina;
       if (initialData) {
-        const response = await vacinaService.atualizar(initialData.id, data)
-        savedVacina = response.data
+        const response = await vacinaService.atualizar(initialData.id, formattedData);
+        savedVacina = response.data;
       } else {
-        const response = await vacinaService.criar(data)
-        savedVacina = response.data
+        const response = await vacinaService.criar(formattedData);
+        savedVacina = response.data;
       }
-      onSave(savedVacina)
+      onSave(savedVacina);
       toast({
         title: "Sucesso",
         description: `Vacina ${initialData ? 'atualizada' : 'criada'} com sucesso.`,
-      })
+      });
     } catch (error) {
-      console.error("Erro ao salvar vacina:", error)
+      console.error("Erro ao salvar vacina:", error);
       toast({
         title: "Erro",
         description: `Não foi possível ${initialData ? 'atualizar' : 'criar'} a vacina.`,
         variant: "destructive",
-      })
+      });
     }
   }
 
   return (
+    <>
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={(e) => form.handleSubmit(onSubmit)(e)} className="space-y-4">
         <FormField
           control={form.control}
           name="titulo"
@@ -173,7 +173,7 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
             <FormItem>
               <FormLabel>Periodicidade</FormLabel>
               <Select 
-                onValueChange={field.onChange} 
+                onValueChange={(value) => field.onChange(Number(value))}
                 value={field.value?.toString()}
                 disabled={form.watch('doses') <= 1}
               >
@@ -183,7 +183,7 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Object.entries(Periodicidade).map(([key, value]) => (
+                  {Object.entries(Periodicidade).filter(([key]) => isNaN(Number(key))).map(([key, value]) => (
                     <SelectItem key={key} value={value.toString()}>
                       {key}
                     </SelectItem>
@@ -244,11 +244,16 @@ export function VacinaForm({ initialData, onSave }: VacinaFormProps) {
           )}
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full mb-2">
           Salvar
+        </Button>
+        <Button type="button" variant="outline" className="w-full" onClick={onCancel}>
+          Cancelar
         </Button>
       </form>
     </Form>
+    <Toaster />
+    </>
   )
 }
 

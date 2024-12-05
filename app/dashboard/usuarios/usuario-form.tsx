@@ -22,24 +22,12 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import type { Usuario, Alergia } from "@/types/interfaces"
+import { type Usuario, type Alergia } from "@/types/interfaces"
 import { Sexo, UFs } from "@/types/enums"
 import { alergiaService } from "@/services/alergiaService"
 import { useToast } from "@/components/ui/use-toast"
+import { FancyMultiSelect } from "@/components/ui/fancy-multi-select"
 
 const formSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").max(60, "Nome deve ter no máximo 60 caracteres"),
@@ -59,7 +47,22 @@ interface UsuarioFormProps {
 
 export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
   const [alergias, setAlergias] = useState<Alergia[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      nome: initialData?.nome || "",
+      dataNascimento: initialData?.dataNascimento ? new Date(initialData.dataNascimento) : new Date(),
+      sexo: initialData?.sexo || Sexo.M,
+      logradouro: initialData?.logradouro || "",
+      setor: initialData?.setor || "",
+      cidade: initialData?.cidade || "",
+      uf: initialData?.uf || UFs[0],
+      alergias: initialData?.alergias?.map(a => a.id) || [],
+    },
+  })
 
   useEffect(() => {
     const fetchAlergias = async () => {
@@ -80,26 +83,31 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
     fetchAlergias()
   }, [toast])
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      nome: "",
-      dataNascimento: new Date(),
-      sexo: Sexo.M,
-      logradouro: "",
-      setor: "",
-      cidade: "",
-      uf: UFs[0],
-      alergias: [],
-    },
-  })
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      setIsLoading(true)
+      const selectedAlergias = alergias.filter(a => data.alergias.includes(a.id))
+      
+      await onSave({
+        id: initialData?.id || 0,
+        ...data,
+        alergias: selectedAlergias,
+      })
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    onSave({
-      id: initialData?.id || 0,
-      ...data,
-      alergias: alergias.filter(a => (data.alergias || []).includes(a.id)),
-    })
+      toast({
+        title: "Sucesso",
+        description: "Usuário salvo com sucesso!",
+      })
+    } catch (error) {
+      console.error("Erro ao salvar usuário:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o usuário.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -246,31 +254,23 @@ export function UsuarioForm({ initialData, onSave }: UsuarioFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Alergias</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(value.split(',').map(Number))}
-                value={field.value?.join(',')}
-                multiple
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione as alergias" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {alergias.map((alergia) => (
-                    <SelectItem key={alergia.id} value={alergia.id.toString()}>
-                      {alergia.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <FancyMultiSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={alergias.map(alergia => ({
+                    value: alergia.id,
+                    label: alergia.nome
+                  }))}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Salvar
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Salvando..." : "Salvar"}
         </Button>
       </form>
     </Form>

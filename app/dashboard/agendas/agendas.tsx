@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
@@ -23,27 +23,83 @@ import { ptBR } from "date-fns/locale"
 import { Situacao, type Agenda } from "@/types/interfaces"
 import { AgendaForm } from "./agenda-form"
 import { useRouter } from "next/navigation"
+import { agendaService } from "@/services/agendaService"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
 
 export function Agendas() {
   const router = useRouter()
   const [agendas, setAgendas] = useState<Agenda[]>([])
-  const [editingAgenda, setEditingAgenda] = useState<Agenda | null>(null)
+  const [loadingId, setLoadingId] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
-  const handleSave = (agenda: Agenda) => {
-    if (editingAgenda) {
-      setAgendas(agendas.map(a => a.id === agenda.id ? agenda : a))
-    } else {
-      setAgendas([...agendas, { ...agenda, id: Math.random().toString() }])
+  useEffect(() => {
+    fetchAgendas()
+  }, [])
+
+  const fetchAgendas = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await agendaService.buscarTodas()
+      const agendasData = Array.isArray(response.data) ? response.data : []
+      setAgendas(agendasData)
+    } catch (error) {
+      console.error("Erro ao buscar agendas:", error)
+      setError("Não foi possível carregar as agendas. Por favor, tente novamente mais tarde.")
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as agendas.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
-    setEditingAgenda(null)
   }
 
-  const handleDelete = (id: string) => {
-    setAgendas(agendas.filter(a => a.id !== id))
+  const handleSave = async (agenda: Agenda) => {
+    try {
+      await agendaService.agendar(agenda.usuario.id, agenda.vacina.id, agenda.data.toISOString().split('T')[0], agenda.hora, agenda.observacoes)
+      await fetchAgendas()
+      toast({
+        title: "Sucesso",
+        description: `Agenda ${agenda.id ? 'atualizada' : 'criada'} com sucesso.`,
+      })
+    } catch (error) {
+      console.error("Erro ao salvar agenda:", error)
+      toast({
+        title: "Erro",
+        description: `Não foi possível ${agenda.id ? 'atualizar' : 'criar'} a agenda.`,
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleRowClick = (id: string) => {
-    router.push(`/agendas/${id}`)
+  const handleDelete = async (id: number) => {
+    setLoadingId(id)
+    try {
+      await agendaService.excluir(id)
+      await fetchAgendas()
+      toast({
+        title: "Sucesso",
+        description: "Vacina excluída com sucesso.",
+      })
+    } catch (error) {
+      console.error("Erro ao excluir vacina:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a vacina.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingId(null)
+    } //ganbiarra de senior
+  }
+
+  const handleRowClick = (id: number) => {
+    router.push(`/dashboard/agendas/${id}`)
   }
 
   return (
@@ -86,19 +142,6 @@ export function Agendas() {
                 {agenda.dataSituacao && format(agenda.dataSituacao, "PPP", { locale: ptBR })}
               </TableCell>
               <TableCell className="text-right">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="mr-2">
-                      Editar
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Editar Agenda</DialogTitle>
-                    </DialogHeader>
-                    <AgendaForm onSave={handleSave} initialData={agenda} />
-                  </DialogContent>
-                </Dialog>
                 <Button 
                   variant="destructive" 
                   size="sm"

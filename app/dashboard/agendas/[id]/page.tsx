@@ -28,32 +28,30 @@ export default function AgendaDetailsPage() {
   const [reacao, setReacao] = useState("")
 
   useEffect(() => {
+    const fetchAgenda = async () => {
+      setIsLoading(true)
+      try {
+        const response = await agendaService.buscarPorId(Number(params.id))
+        setAgenda(response.data)
+      } catch (error) {
+        console.error("Erro ao buscar detalhes da agenda:", error)
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os detalhes da agenda.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
     fetchAgenda()
   }, [params.id])
-
-  const fetchAgenda = async () => {
-    setIsLoading(true)
-    try {
-      const response = await agendaService.buscarPorId(Number(params.id))
-      setAgenda(response.data)
-    } catch (error) {
-      console.error("Erro ao buscar detalhes da agenda:", error)
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os detalhes da agenda.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleDarBaixa = async (situacao: Situacao) => {
     if (!agenda) return
 
     try {
       await agendaService.darBaixa(agenda.id, situacao)
-      await fetchAgenda()
       toast({
         title: "Sucesso",
         description: `Agenda ${situacao.toLowerCase()} com sucesso.`,
@@ -72,7 +70,7 @@ export default function AgendaDetailsPage() {
     if (!agenda) return
 
     try {
-      await reacaoService.incluirReacao(agenda.id, reacao, new Date().toISOString())
+      await reacaoService.incluirReacao(agenda.id, reacao, new Date().toISOString().split('T')[0])
       toast({
         title: "Sucesso",
         description: "Reação adicionada com sucesso.",

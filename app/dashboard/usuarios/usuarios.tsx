@@ -26,6 +26,7 @@ import { UsuarioForm } from "./usuario-form"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import { usuarioService } from "@/services/usuarioService"
+import { Badge } from "@/components/ui/badge"
 
 export function Usuarios() {
   const router = useRouter()
@@ -105,17 +106,6 @@ export function Usuarios() {
     router.push(`/dashboard/usuarios/${id}`)
   }
 
-  //const handleFilter = (column: keyof Usuario, value: string) => { //Removed handleFilter function
-  //  const filtered = usuarios.filter(usuario => {
-  //    const columnValue = usuario[column]
-  //    if (typeof columnValue === 'string') {
-  //      return columnValue.toLowerCase().includes(value.toLowerCase())
-  //    }
-  //    return false
-  //  })
-  //  setFilteredUsuarios(filtered)
-  //}
-
   if (isLoading) {
     return <div className="container mx-auto py-10">Carregando...</div>
   }
@@ -184,7 +174,25 @@ export function Usuarios() {
                   </TableCell>
                   <TableCell>{usuario.sexo}</TableCell>
                   <TableCell>{usuario.uf}</TableCell>
-                  <TableCell>{usuario.alergias.length} alergia(s)</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {usuario.alergias.map((alergia) => {
+                        const color = `hsl(${Math.random() * 360}, 70%, 40%)`
+                        const textColor = getContrastYIQ(color)
+                        return (
+                          <Badge
+                            key={alergia.id}
+                            style={{
+                              backgroundColor: color,
+                              color: textColor
+                            }}
+                          >
+                            {alergia.nome}
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right">
                     <Dialog>
                       <DialogTrigger asChild>
@@ -230,5 +238,13 @@ export function Usuarios() {
       <Toaster />
     </>
   )
+}
+
+function getContrastYIQ(hexcolor: string) {
+  const r = parseInt(hexcolor.substr(1,2),16)
+  const g = parseInt(hexcolor.substr(3,2),16)
+  const b = parseInt(hexcolor.substr(5,2),16)
+  const yiq = ((r*299)+(g*587)+(b*114))/1000
+  return (yiq >= 128) ? 'black' : 'white'
 }
 
