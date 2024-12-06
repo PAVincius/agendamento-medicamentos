@@ -7,8 +7,8 @@ export const agendaService = {
     params: { usuarioId, vacinaId, dataInicial, horaString, observacoes }
   }),
 
-  darBaixa: (agendaId: number, situacao: Situacao) =>
-    api.put<Agenda>(`/agendas/${agendaId}/baixa`, { novaSituacao: situacao }),
+  darBaixa: (agendaId: number, novaSituacao: Situacao) =>
+    api.put<Agenda>(`/agendas/${agendaId}/baixa`, null, { params: { situacao: novaSituacao } }),
 
   listarPorUsuario: (usuarioId: number) =>
     api.get<Agenda[]>(`/agendas/usuario/${usuarioId}`),

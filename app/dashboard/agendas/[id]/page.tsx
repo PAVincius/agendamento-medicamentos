@@ -7,7 +7,7 @@ import { Calendar, User, Syringe } from 'lucide-react'
 import { format, isFuture } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Skeleton } from "@/components/ui/skeleton"
-import { type Agenda, Situacao } from "@/types/interfaces"
+import { Agenda, Situacao, Reacao } from "@/types/interfaces"
 import { agendaService } from "@/services/agendaService"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,32 +26,43 @@ export default function AgendaDetailsPage() {
   const [agenda, setAgenda] = useState<Agenda | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [reacao, setReacao] = useState("")
+  const [reacoes, setReacoes] = useState<Reacao[]>([])
 
   useEffect(() => {
-    const fetchAgenda = async () => {
-      setIsLoading(true)
-      try {
-        const response = await agendaService.buscarPorId(Number(params.id))
-        setAgenda(response.data)
-      } catch (error) {
-        console.error("Erro ao buscar detalhes da agenda:", error)
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os detalhes da agenda.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
     fetchAgenda()
   }, [params.id])
+
+  const fetchAgenda = async () => {
+    setIsLoading(true)
+    try {
+      const agendaResponse = await agendaService.buscarPorId(Number(params.id))
+      setAgenda(agendaResponse.data)
+      
+      try {
+        const reacoesResponse = await reacaoService.buscarPorAgenda(Number(params.id))
+        setReacoes(reacoesResponse.data)
+      } catch (error) {
+        console.error("Erro ao buscar reações:", error)
+        setReacoes([])
+      }
+    } catch (error) {
+      console.error("Erro ao buscar detalhes da agenda:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os detalhes da agenda.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleDarBaixa = async (situacao: Situacao) => {
     if (!agenda) return
 
     try {
       await agendaService.darBaixa(agenda.id, situacao)
+      await fetchAgenda()
       toast({
         title: "Sucesso",
         description: `Agenda ${situacao.toLowerCase()} com sucesso.`,
@@ -70,7 +81,7 @@ export default function AgendaDetailsPage() {
     if (!agenda) return
 
     try {
-      await reacaoService.incluirReacao(agenda.id, reacao, new Date().toISOString().split('T')[0])
+      await reacaoService.incluirReacao(agenda.id, reacao, new Date().toISOString())
       toast({
         title: "Sucesso",
         description: "Reação adicionada com sucesso.",
@@ -198,6 +209,24 @@ export default function AgendaDetailsPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Reações</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {reacoes.length > 0 ? (
+            reacoes.map((reacao, index) => (
+              <div key={index} className="mb-2">
+                <p className="font-semibold">{format(new Date(reacao.dataReacao), "PPP", { locale: ptBR })}</p>
+                <p>{reacao.descricao}</p>
+              </div>
+            ))
+          ) : (
+            <p>Nenhuma reação registrada para esta agenda.</p>
+          )}
+        </CardContent>
+      </Card>
 
       {agenda.situacao === Situacao.REALIZADO && (
         <Dialog>
