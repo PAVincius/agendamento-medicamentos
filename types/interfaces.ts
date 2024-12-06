@@ -7,9 +7,9 @@ export enum Situacao {
 }
 
 export interface Agenda {
+  horaString: string | undefined;
   id: number;
   data: Date;
-  hora: string;
   situacao: Situacao;
   dataSituacao?: Date;
   observacoes?: string;

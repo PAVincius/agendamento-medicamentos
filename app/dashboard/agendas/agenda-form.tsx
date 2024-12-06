@@ -39,8 +39,9 @@ import { useToast } from "@/components/ui/use-toast"
 import { agendaService } from "@/services/agendaService"; // Import agendaService
 
 const formSchema = z.object({
+  id: z.number().optional(), // Updated: Added id field
   data: z.date(),
-  hora: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato de hora inválido"),
+  horaString: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato de hora inválido"),
   situacao: z.nativeEnum(Situacao),
   dataSituacao: z.date().optional(),
   observacoes: z.string().max(200, "Observações devem ter no máximo 200 caracteres").optional(),
@@ -88,16 +89,18 @@ export function AgendaForm({ initialData, onSave, onCancel }: AgendaFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData ? {
+      id: initialData.id,
       data: new Date(initialData.data),
-      hora: initialData.hora,
+      horaString: initialData.horaString,
       situacao: initialData.situacao,
       dataSituacao: initialData.dataSituacao ? new Date(initialData.dataSituacao) : undefined,
       observacoes: initialData.observacoes || "",
       usuarioId: initialData.usuario.id,
       vacinaId: initialData.vacina.id,
     } : {
+      id: 0,
       data: new Date(),
-      hora: "09:00",
+      horaString: "09:00",
       situacao: Situacao.AGENDADO,
       dataSituacao: undefined,
       observacoes: "",
@@ -109,33 +112,46 @@ export function AgendaForm({ initialData, onSave, onCancel }: AgendaFormProps) {
   const onSubmit = async (data: z.infer<typeof formSchema>, event: React.FormEvent) => {
     event.preventDefault();
     try {
-      // Formatar os dados para enviar para o backend
+      const usuario = usuarios.find(u => u.id === data.usuarioId);
+      const vacina = vacinas.find(v => v.id === data.vacinaId);
+      if (!usuario || !vacina) {
+        toast({
+          title: "Erro",
+          description: "Usuário ou vacina não encontrados.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const formattedData = {
-        usuarioId:data.usuarioId,
+        usuarioId: data.usuarioId,
         vacinaId: data.vacinaId,
         dataInicial: format(data.data, "yyyy-MM-dd"),
-        hora: data.hora,
-        observacoes: data.observacoes || "",
-        // Outros campos necessários para o backend
+        horaString: data.horaString,
+        observacoes: data.observacoes || ""
       };
-      console.log(formattedData);
-      // Chamar o serviço para criar ou atualizar a agenda
-      if (initialData) {
-        const response = await agendaService.darBaixa(initialData.id, initialData.situacao);
-        savedAgenda = response.data;
+
+      if (initialData?.id) {
+        await agendaService.darBaixa(initialData.id, data.situacao);
+        toast({
+          title: "Sucesso",
+          description: "Agenda atualizada com sucesso.",
+        });
       } else {
-        const response = await agendaService.agendar(formattedData.usuarioId, formattedData.vacinaId, formattedData.dataInicial, formattedData.hora, formattedData.observacoes);
-        savedAgenda = response.data;
+        const response = await agendaService.agendar(
+          formattedData.usuarioId,
+          formattedData.vacinaId,
+          formattedData.dataInicial,
+          formattedData.horaString,
+          formattedData.observacoes
+        );
+        toast({
+          title: "Sucesso",
+          description: "Agenda(s) criada(s) com sucesso.",
+        });
       }
-      console.log(savedAgenda);
-      // Chamar a função onSave para atualizar o estado pai
-      onSave(savedAgenda);
-  
-      // Mostrar mensagem de sucesso
-      toast({
-        title: "Sucesso",
-        description: `Agenda ${initialData ? 'atualizada' : 'criada'} com sucesso.`,
-      });
+
+      onSave(formattedData as unknown as Agenda);
     } catch (error) {
       console.error("Erro ao salvar agenda:", error);
       toast({
@@ -244,7 +260,7 @@ export function AgendaForm({ initialData, onSave, onCancel }: AgendaFormProps) {
 
         <FormField
           control={form.control}
-          name="hora"
+          name="horaString"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Hora</FormLabel>

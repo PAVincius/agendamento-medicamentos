@@ -2,8 +2,10 @@ import api from './api';
 import type { Agenda, Situacao } from '../types/interfaces';
 
 export const agendaService = {
-  agendar: (usuarioId: number, vacinaId: number, dataInicial: string, hora: string, observacoes?: string) =>
-    api.post<Agenda[]>('/agendas', { usuarioId, vacinaId, dataInicial, hora, observacoes }),
+  agendar: (usuarioId: number, vacinaId: number, dataInicial: string, horaString: string, observacoes?: string) =>
+  api.post<Agenda[]>('/agendas', null, { 
+    params: { usuarioId, vacinaId, dataInicial, horaString, observacoes }
+  }),
 
   darBaixa: (agendaId: number, situacao: Situacao) =>
     api.put<Agenda>(`/agendas/${agendaId}/baixa`, { novaSituacao: situacao }),
