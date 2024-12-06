@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { Plus } from 'lucide-react'
+import { Plus, Frown, Smile, Meh, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,24 +10,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Reacao, Agenda, Situacao } from "@/types/interfaces"
+import type { Reacao } from "@/types/interfaces"
 import { ReacaoForm } from "./reacao-form"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import { reacaoService } from "@/services/reacaoService"
-import { agendaService } from "@/services/agendaService"
 
 export function Reacoes() {
   const [reacoes, setReacoes] = useState<Reacao[]>([])
@@ -43,20 +35,15 @@ export function Reacoes() {
   const fetchReacoes = async () => {
     setIsLoading(true)
     try {
-      const agendasResponse = await agendaService.buscarPorSituacao(Situacao.REALIZADO)
-      const agendas = agendasResponse.data
-
-      const reacoesPromises = agendas.map(agenda => reacaoService.buscarPorAgenda(agenda.id))
-      const reacoesResponses = await Promise.all(reacoesPromises)
-      
-      const todasReacoes = reacoesResponses.flatMap(response => response.data)
-      setReacoes(todasReacoes)
-      setFilteredReacoes(todasReacoes)
+      const response = await reacaoService.listarTodas()
+      const fetchedReacoes = Array.isArray(response.data) ? response.data : []
+      setReacoes(fetchedReacoes)
+      setFilteredReacoes(fetchedReacoes)
     } catch (error) {
       console.error("Erro ao buscar reações:", error)
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar as reações.",
+        title: "Oops!",
+        description: "As reações fugiram! Vamos tentar pegá-las de novo.",
         variant: "destructive",
       })
     } finally {
@@ -67,22 +54,20 @@ export function Reacoes() {
   const handleSave = async (reacao: Reacao) => {
     try {
       if (reacao.id) {
-        // Update existing reaction
         await reacaoService.atualizarReacao(reacao.id, reacao)
       } else {
-        // Create new reaction
-        await reacaoService.incluirReacao(reacao.agenda.id, reacao.descricao, reacao.dataReacao.toISOString())
+        await reacaoService.incluirReacao(reacao.descricao, reacao.dataReacao)
       }
       await fetchReacoes()
       toast({
-        title: "Sucesso",
-        description: `Reação ${reacao.id ? 'atualizada' : 'criada'} com sucesso.`,
+        title: "Sucesso!",
+        description: `Reação ${reacao.id ? 'atualizada' : 'criada'} com sucesso. Que reação!`,
       })
     } catch (error) {
       console.error("Erro ao salvar reação:", error)
       toast({
-        title: "Erro",
-        description: `Não foi possível ${reacao.id ? 'atualizar' : 'criar'} a reação.`,
+        title: "Opa!",
+        description: `A reação teve uma reação adversa! Não foi possível ${reacao.id ? 'atualizar' : 'criar'}.`,
         variant: "destructive",
       })
     }
@@ -94,14 +79,14 @@ export function Reacoes() {
       await reacaoService.excluirReacao(id)
       await fetchReacoes()
       toast({
-        title: "Sucesso",
-        description: "Reação excluída com sucesso.",
+        title: "Puf!",
+        description: "A reação desapareceu como mágica!",
       })
     } catch (error) {
       console.error("Erro ao excluir reação:", error)
       toast({
-        title: "Erro",
-        description: "Não foi possível excluir a reação.",
+        title: "Eita!",
+        description: "A reação se recusou a ir embora. Ela é teimosa!",
         variant: "destructive",
       })
     } finally {
@@ -109,8 +94,14 @@ export function Reacoes() {
     }
   }
 
+  const getReactionEmoji = (descricao: string) => {
+    if (descricao.toLowerCase().includes('alérgico')) return <Frown className="text-red-500" />
+    if (descricao.toLowerCase().includes('kkkk')) return <Smile className="text-yellow-500" />
+    return <Meh className="text-gray-500" />
+  }
+
   if (isLoading) {
-    return <div className="container mx-auto py-10">Carregando...</div>
+    return <div className="container mx-auto py-10">Carregando reações... Não espirre!</div>
   }
 
   return (
@@ -127,7 +118,7 @@ export function Reacoes() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Nova Reação</DialogTitle>
+                <DialogTitle>Nova Reação (Tente não rir)</DialogTitle>
               </DialogHeader>
               <ReacaoForm onSave={handleSave} />
             </DialogContent>
@@ -136,13 +127,11 @@ export function Reacoes() {
 
         <div className="mb-4">
           <Input
-            placeholder="Pesquisar reações..."
+            placeholder="Procure reações engraçadas..."
             onChange={(e) => {
               const searchTerm = e.target.value.toLowerCase()
               const filtered = reacoes.filter(reacao =>
-                reacao.descricao.toLowerCase().includes(searchTerm) ||
-                reacao.agenda.usuario.nome.toLowerCase().includes(searchTerm) ||
-                reacao.agenda.vacina.titulo.toLowerCase().includes(searchTerm)
+                reacao.descricao.toLowerCase().includes(searchTerm)
               )
               setFilteredReacoes(filtered)
             }}
@@ -150,44 +139,36 @@ export function Reacoes() {
         </div>
 
         {filteredReacoes.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data da Reação</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Usuário</TableHead>
-                <TableHead>Vacina</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredReacoes.map((reacao) => (
-                <TableRow key={reacao.id}>
-                  <TableCell>
-                    {loadingId === reacao.id ? (
-                      <Skeleton className="h-4 w-[100px]" />
-                    ) : (
-                      format(new Date(reacao.dataReacao), "PPP", { locale: ptBR })
-                    )}
-                  </TableCell>
-                  <TableCell>{reacao.descricao}</TableCell>
-                  <TableCell>{reacao.agenda.usuario.nome}</TableCell>
-                  <TableCell>{reacao.agenda.vacina.titulo}</TableCell>
-                  <TableCell className="text-right">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredReacoes.map((reacao) => (
+              <Card key={reacao.id} className="overflow-hidden transition-all hover:shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-purple-400 to-pink-500">
+                  <CardTitle className="text-white flex items-center justify-between">
+                    Reação #{reacao.id}
+                    {getReactionEmoji(reacao.descricao)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-lg font-semibold mb-2">{reacao.descricao}</p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Data: {format(new Date(reacao.dataReacao), "PPP", { locale: ptBR })}
+                  </p>
+                  <div className="flex justify-end space-x-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="mr-2"
+                          className="flex items-center"
                           disabled={loadingId === reacao.id}
                         >
+                          <ThumbsUp className="mr-1 h-4 w-4" />
                           Editar
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Editar Reação</DialogTitle>
+                          <DialogTitle>Editar Reação (Seja criativo!)</DialogTitle>
                         </DialogHeader>
                         <ReacaoForm onSave={handleSave} initialData={reacao} />
                       </DialogContent>
@@ -197,16 +178,18 @@ export function Reacoes() {
                       size="sm"
                       onClick={() => handleDelete(reacao.id)}
                       disabled={loadingId === reacao.id}
+                      className="flex items-center"
                     >
+                      <ThumbsDown className="mr-1 h-4 w-4" />
                       Excluir
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         ) : (
-          <p>Nenhuma reação encontrada.</p>
+          <p className="text-center text-xl font-bold mt-10">Nenhuma reação engraçada encontrada. Que tristeza! 😢</p>
         )}
       </div>
       <Toaster />

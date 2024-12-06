@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { Plus } from 'lucide-react'
+import { Plus, ArrowUpDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { format } from "date-fns"
+import { format, isToday } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Situacao, type Agenda } from "@/types/interfaces"
 import { AgendaForm } from "./agenda-form"
@@ -26,14 +26,25 @@ import { useRouter } from "next/navigation"
 import { agendaService } from "@/services/agendaService"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export function Agendas() {
   const router = useRouter()
   const [agendas, setAgendas] = useState<Agenda[]>([])
+  const [filteredAgendas, setFilteredAgendas] = useState<Agenda[]>([])
   const [loadingId, setLoadingId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     fetchAgendas()
@@ -46,6 +57,7 @@ export function Agendas() {
       const response = await agendaService.buscarTodas()
       const agendasData = Array.isArray(response.data) ? response.data : []
       setAgendas(agendasData)
+      setFilteredAgendas(agendasData)
     } catch (error) {
       console.error("Erro ao buscar agendas:", error)
       setError("Não foi possível carregar as agendas. Por favor, tente novamente mais tarde.")
@@ -84,23 +96,51 @@ export function Agendas() {
       await fetchAgendas()
       toast({
         title: "Sucesso",
-        description: "Vacina excluída com sucesso.",
+        description: "Agenda excluída com sucesso.",
       })
     } catch (error) {
-      console.error("Erro ao excluir vacina:", error)
+      console.error("Erro ao excluir agenda:", error)
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a vacina.",
+        description: "Não foi possível excluir a agenda.",
         variant: "destructive",
       })
     } finally {
       setLoadingId(null)
-    } //ganbiarra de senior
+    }
   }
 
   const handleRowClick = (id: number) => {
     router.push(`/dashboard/agendas/${id}`)
   }
+
+  const handleFilter = (column: keyof Agenda, value: string) => {
+    const filtered = agendas.filter(agenda => {
+      if (column === 'data') {
+        return format(new Date(agenda.data), "dd/MM/yyyy").includes(value)
+      }
+      if (column === 'situacao') {
+        return agenda.situacao.toLowerCase() === value.toLowerCase()
+      }
+      return true
+    })
+    setFilteredAgendas(filtered)
+  }
+
+  const handleSort = () => {
+    const sortedAgendas = [...filteredAgendas].sort((a, b) => {
+      if (a.situacao < b.situacao) return sortOrder === 'asc' ? -1 : 1
+      if (a.situacao > b.situacao) return sortOrder === 'asc' ? 1 : -1
+      return 0
+    })
+    setFilteredAgendas(sortedAgendas)
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+  }
+
+  const agendasHoje = agendas.filter(agenda => isToday(new Date(agenda.data))).length
+  const agendasRealizadas = agendas.filter(agenda => agenda.situacao === Situacao.REALIZADO).length
+  const agendasCanceladas = agendas.filter(agenda => agenda.situacao === Situacao.CANCELADO).length
+  const agendasAgendadas = agendas.filter(agenda => agenda.situacao === Situacao.AGENDADO).length
 
   return (
     <div className="container mx-auto py-10">
@@ -122,30 +162,81 @@ export function Agendas() {
         </Dialog>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Agendas Hoje</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{agendasHoje}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Realizadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{agendasRealizadas}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{agendasCanceladas}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Agendadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{agendasAgendadas}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mb-4 flex space-x-4">
+        <Input 
+          placeholder="Filtrar por data (dd/mm/yyyy)" 
+          onChange={(e) => handleFilter('data', e.target.value)}
+          className="w-64"
+        />
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Data</TableHead>
-            <TableHead>Situação</TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={handleSort} className="h-8 w-full justify-start">
+                Situação
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
             <TableHead>Data da Situação</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {agendas.map((agenda) => (
+          {filteredAgendas.map((agenda) => (
             <TableRow key={agenda.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleRowClick(agenda.id)}>
               <TableCell>
-                {format(agenda.data, "PPP", { locale: ptBR })}
+                {format(new Date(agenda.data), "PPP", { locale: ptBR })}
               </TableCell>
               <TableCell>{agenda.situacao}</TableCell>
               <TableCell>
-                {agenda.dataSituacao && format(agenda.dataSituacao, "PPP", { locale: ptBR })}
+                {agenda.dataSituacao && format(new Date(agenda.dataSituacao), "PPP", { locale: ptBR })}
               </TableCell>
               <TableCell className="text-right">
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  onClick={() => handleDelete(agenda.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(agenda.id);
+                  }}
                 >
                   Excluir
                 </Button>
@@ -154,6 +245,7 @@ export function Agendas() {
           ))}
         </TableBody>
       </Table>
+      <Toaster />
     </div>
   )
 }
